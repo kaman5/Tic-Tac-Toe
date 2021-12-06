@@ -1,0 +1,68 @@
+import turtle
+
+class tMove(turtle.Turtle):
+    '''Tic Tac Toe move'''
+
+    def __init__(self, x, y, width, player):
+        '''tttMoveBoard(board) -> tttMoveBoard'''
+        turtle.Turtle.__init__(self) # sets up a turtle
+        self.hideturtle()
+        self.speed(0)
+        self.penup()
+        self.goto(x, y)
+        
+        if player == "O": # draws O
+            self.pendown()
+            self.dot(width / 3.5)
+            self.dot(width / 3.75, "white")
+
+        elif player == "X": # draws X
+            self.width(width / 100)
+            self.pendown()
+            self.left(45)
+            for i in range(2):
+                self.forward(width / 6)
+                self.backward(width / 3)
+                self.goto(x, y)
+                self.right(90)
+
+class tGame(turtle.Turtle):
+    '''Tic Tac Toe game'''
+
+    def __init__(self, width):
+        self.moveList = []
+        
+        turtle.Turtle.__init__(self) # set up a turtle
+
+        self.draw_board(width)
+        self.turtle.onclick(self.play_move(width, "O", -1, 1))
+
+    def play_move(self, width, player, x, y):
+        newPiece = tMove(x * width / 3, y * width / 3, width, player)
+        self.moveList.append([x, y])
+
+    def draw_board(self, width):
+        self.hideturtle()
+        self.speed(0)
+        self.width(width / 95)
+        
+        # horizontal
+        for i in range(-1, 2, 2): # im a genius
+            self.up()
+            self.goto(-(width / 2), -i * (width / 6))
+            self.down()
+            self.forward(width)
+
+        # vertical
+        self.left(90)
+        for i in range(-1, 2, 2):
+            self.up()
+            self.goto(-i * (width / 6), -(width / 2))
+            self.down()
+            self.forward(width)
+
+game = tGame(600)
+
+
+#piece1 = tMove(-2 * width / 6, 0, width, "O")
+#piece2 = tMove(-2 * width / 6, 2 * width / 6, width, "X")
