@@ -5,12 +5,13 @@ class tMove(turtle.Turtle):
 
     def __init__(self, x, y, width, player):
         '''tttMoveBoard(board) -> tttMoveBoard'''
+        
         turtle.Turtle.__init__(self) # sets up a turtle
         self.hideturtle()
         self.speed(0)
         self.penup()
         self.goto(x, y)
-        
+
         if player == "O": # draws O
             self.pendown()
             self.dot(width / 3.5)
@@ -30,39 +31,155 @@ class tGame(turtle.Turtle):
     '''Tic Tac Toe game'''
 
     def __init__(self, width):
-        self.moveList = []
-        
         turtle.Turtle.__init__(self) # set up a turtle
+        self.wn = turtle.Screen() # set up a turtle window
+        self.moveList = [["0", "1", "2"],
+                         ["3", "4", "5"],
+                         ["6", "7", "8"]]
+        self.widthB = width
+        self.player = "X"
 
-        self.draw_board(width)
-        self.turtle.onclick(self.play_move(width, "O", -1, 1))
+        self.draw_board()
+        
+        self.wn.onclick(self.play_game)
+        self.wn.mainloop()
 
-    def play_move(self, width, player, x, y):
-        newPiece = tMove(x * width / 3, y * width / 3, width, player)
-        self.moveList.append([x, y])
+    def play_game(self, x, y):
+        if self.play_move(x, y):
+            if self.detect_win() or self.detect_win() == 0:
+                self.post_win(x, y)
+                self.wn.exitonclick()
+                
+            self.switch_player()
 
-    def draw_board(self, width):
+    def post_win(self, x, y):
+        unit = self.widthB // 3
+        winList = []
+
+        # draw
+        if not self.detect_win() and self.detect_win() == 0:
+            self.color('green')
+            self.player = "No one"
+        
+        else:
+            # find winning line
+            for y in range(0, 3):
+                for x in range(0, 3):
+                    if self.moveList[y][x] == "W":
+                        winList.append([x - 1, -(y - 1)])
+            
+            # draw line
+            self.penup()
+            self.goto(winList[0][0] * unit, winList[0][1] * unit)
+            self.setheading(self.towards(winList[2][0] * unit, winList[2][1] * unit))
+
+            self.pendown()
+            self.color('green')
+            self.width(self.widthB * 0.075)
+            self.speed(4)
+            self.goto(winList[2][0] * unit, winList[2][1] * unit)
+
+        # write winner
+        self.penup()
+        self.home()
+        self.speed(0)
+        self.setheading(270)
+        self.forward(self.widthB * 0.65)
+        self.pendown()
+        self.write(self.player + " wins!", align = "center", font = ("Arial", 50, "normal"))
+
+    def detect_win(self):
+        # get winning line
+        for i in range(0, 3):
+            # horizontal
+            if self.moveList[i][0] == self.moveList[i][1] == self.moveList[i][2]:
+                for j in range(0, 3): # change to "W" for winning line
+                    self.moveList[i][j] = "W"
+                return True
+
+            # vertical
+            if self.moveList[0][i] == self.moveList[1][i] == self.moveList[2][i]:
+                
+                for j in range(0, 3):
+                    self.moveList[j][i] = "W"
+                return True
+
+        # diagonal
+        for i in range(0, -3, -2):
+            if self.moveList[0][abs(i + 0)] == self.moveList[1][abs(i + 1)] == self.moveList[2][i + 2]:
+                
+                for j in range(0, 3):
+                    self.moveList[j][abs(i + j)] = "W"
+                return True
+        
+        # check for draw
+        count = 0
+
+        for y in self.moveList:
+            for x in y:
+                if x == "X" or x == "O":
+                    count += 1
+                    
+        if count == 9:
+            return 0
+
+    def play_move(self, x, y):
+        # processing x and y values
+        unit = self.widthB / 6
+        moveBound = [[-unit * 3, -unit], [-unit, unit], [unit, unit * 3]]
+
+        # checks for legal move
+        if x <= -unit * 3 or x >= unit * 3 or \
+           y <= -unit * 3 or y >= unit * 3:
+            return False
+
+        # iterates over input bounds on turtle screen
+        for i in moveBound:
+            if x >= i[0] and x <= i[1]:
+                self.x2 = (i[0] + i[1]) // 2
+                indX = moveBound.index(i) # list index for x value
+
+        for i in moveBound:
+            if y >= i[0] and y <= i[1]:
+                self.y2 = (i[0] + i[1]) // 2
+                indY = 2 - moveBound.index(i) # list index for y
+
+        # checks for legal move
+        if self.moveList[indY][indX] == "X" or \
+           self.moveList[indY][indX] == "O":
+            return False
+
+        # plays move if it is legal
+        else:
+            self.moveList[indY][indX] = self.player
+            newPiece = tMove(self.x2, self.y2, self.widthB, self.player)
+            return True
+
+    def draw_board(self):
         self.hideturtle()
         self.speed(0)
-        self.width(width / 95)
-        
+        self.width(self.widthB / 95)
+
         # horizontal
         for i in range(-1, 2, 2): # im a genius
             self.up()
-            self.goto(-(width / 2), -i * (width / 6))
+            self.goto(-(self.widthB / 2), -i * (self.widthB / 6))
             self.down()
-            self.forward(width)
+            self.forward(self.widthB)
 
         # vertical
         self.left(90)
         for i in range(-1, 2, 2):
             self.up()
-            self.goto(-i * (width / 6), -(width / 2))
+            self.goto(-i * (self.widthB / 6), -(self.widthB / 2))
             self.down()
-            self.forward(width)
+            self.forward(self.widthB)
+
+    def switch_player(self):
+        if self.player == "O":
+            self.player = "X"
+
+        elif self.player == "X":
+            self.player = "O"
 
 game = tGame(600)
-
-
-#piece1 = tMove(-2 * width / 6, 0, width, "O")
-#piece2 = tMove(-2 * width / 6, 2 * width / 6, width, "X")
